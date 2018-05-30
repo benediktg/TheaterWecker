@@ -1,0 +1,3 @@
+XMPP_APIURL = 'https://xmppserver.tld/msg/'
+XMPP_CREDENTIALS = ('example@xmppserver.tld',
+                    'securepassword')

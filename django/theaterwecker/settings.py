@@ -138,6 +138,12 @@ try:
 except ImportError:
     pass
 
+# Try to import xmpp settings (settings_xmpp.py should be existing after deployment or should be created by hand)
+try:
+    from .settings_xmpp import *
+except ImportError:
+    pass
+
 try:
     from .settings_prod import *
 except ImportError:

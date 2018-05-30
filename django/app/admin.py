@@ -11,6 +11,11 @@ class UserEmailAdmin(admin.ModelAdmin):
     readonly_fields = ['updated', 'created']
 
 
+@admin.register(UserXmpp)
+class UserXmppAdmin(admin.ModelAdmin):
+    list_filter = ['verified']
+
+
 @admin.register(UserDevice)
 class UserDeviceAdmin(admin.ModelAdmin):
     list_filter = ['verified']

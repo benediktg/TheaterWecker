@@ -60,6 +60,30 @@ class UserDevice(models.Model):
         return self.device_id
 
 
+class UserXmpp(models.Model):
+    class Meta:
+        verbose_name = _('User XMPP address')
+        verbose_name_plural = _('User XMPP addresses')
+
+    xmpp = models.EmailField(unique=True)
+    verified = models.BooleanField(default=False)
+    verification_key = models.CharField(
+        max_length=255, null=True, blank=True, unique=True)
+    created = models.DateTimeField(auto_now_add=True, editable=False)
+    updated = models.DateTimeField(auto_now=True, editable=False)
+
+    def __str__(self):
+        check = '✓' if self.verified else '×'
+        return 'xmpp:%s (%s)' % (self.xmpp, check)
+
+    def send_xmpp(self, message):
+        return requests.post(
+            settings.XMPP_APIURL,
+            json={'to': self.xmpp, 'type': 'chat', 'body': message},
+            auth=settings.XMPP_CREDENTIALS
+        )
+
+
 class City(models.Model):
     class Meta:
         verbose_name = _('City')

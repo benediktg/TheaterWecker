@@ -4,3 +4,5 @@ ansible/hosts
 ansible/secrets.yml
 ansible/*.retry
 npm-debug.log
+.vscode/
+.venv/
