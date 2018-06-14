@@ -20,7 +20,7 @@ from django.urls import reverse
 from django.utils.timezone import now, make_aware, utc
 from django.utils.translation import activate
 
-from app.models import UserEmail, Performance, Institution, Category, City, Location, CategoryNotification, UserDevice
+from app.models import UserEmail, Performance, Institution, Category, City, Location, CategoryNotification, UserDevice, UserXmpp
 
 # import the logging library
 import logging
@@ -336,6 +336,36 @@ def send_email_notification(email, performance_id):
     c.timing('send_email_notifications.timed', floor((end - start) * 1000))
 
 
+@shared_task
+def send_xmpp_notification(xmpp, performance_id):
+    c = statsd.StatsClient('localhost', 8125)
+    start = time.time()
+    try:
+        user_xmpp = UserXmpp.objects.get(xmpp=xmpp)
+        performance = Performance.objects.get(pk=performance_id)
+        user_xmpp.send_xmpp(render_to_string(
+            'xmpp/notification.txt',
+            {'performance': performance},
+        ))
+        c.incr('send_xmpp_notification')
+        c.gauge('total.send_xmpp_notification', 1, delta=True)
+    except UserXmpp.DoesNotExist as e:
+        c.incr('send_xmpp_notification.no_user')
+        logger.error('XMPP user does not exist', exc_info=True)
+        return
+    except Performance.DoesNotExist as e:
+        c.incr('send_xmpp_notification.no_performance')
+        logger.error('Performance does not exist', exc_info=True)
+        return
+    except Exception as e:
+        c.incr('send_xmpp_notification.failed')
+        logger.error('Sending XMPP message failed', exc_info=True)
+        return
+
+    end = time.time()
+    c.timing('send_xmpp_notifications.timed', floor((end - start) * 1000))
+
+
 @periodic_task(run_every=(crontab(hour="*", minute="*/15", day_of_week="*")))
 def send_notifications():
     c = statsd.StatsClient('localhost', 8125)
@@ -365,6 +395,9 @@ def send_notifications():
                     send_email_notification.delay(notification.user.email, performance.pk)
                 if notification.device:
                     devices.append(notification.device.device_id)
+                if notification.xmpp:
+                    send_xmpp_notification.delay(
+                        notification.xmpp.xmpp, performance.pk)
             send_push_notifications.delay(devices, performance.pk)
 
     end = time.time()

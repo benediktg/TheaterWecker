@@ -1,0 +1,9 @@
+{% load i18n humanize tz %}{% timezone "Europe/Berlin" %}{% autoescape off %}
+Es gibt noch Karten für die Aufführung "{{ performance.title }}".
+
+Ort: {{ performance.location }}
+Zeitpunkt: {{ performance.begin | date:'d.m.Y H:i' }}
+
+Beschreibung:
+{{ performance.description }}
+{% endautoescape %}{% endtimezone %}

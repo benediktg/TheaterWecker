@@ -168,10 +168,11 @@ class CategoryNotification(models.Model):
     class Meta:
         verbose_name = _('Category Notification')
         verbose_name_plural = _('Category Notifications')
-        unique_together = ('user', 'device', 'category', 'verified')
+        unique_together = ('user', 'xmpp', 'device', 'category', 'verified')
 
     user = models.ForeignKey('UserEmail', null=True, blank=True)
     device = models.ForeignKey('UserDevice', null=True, blank=True)
+    xmpp = models.ForeignKey('UserXmpp', null=True, blank=True)
     category = models.ForeignKey('Category')
     interval = models.DurationField()
     verified = models.BooleanField(default=False)
@@ -185,4 +186,6 @@ class CategoryNotification(models.Model):
             u = self.user
         elif self.device:
             u = self.device
+        elif self.xmpp:
+            u = self.xmpp
         return '%s ~> %s ~> %s (%s)' % (u, self.interval, self.category.name, check)
